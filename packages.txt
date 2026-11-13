@@ -1,0 +1,6 @@
+# One pi package source per line. Comments and blank lines are ignored.
+# Installed in order by install.sh via `pi install <source>`.
+npm:pi-ask-user
+npm:pi-web-access
+git:github.com/EveryInc/compound-engineering-plugin
+git:git@github.com:artefactory/pi-subagent-manager

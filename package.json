@@ -1,0 +1,17 @@
+{
+  "name": "@artefactory/pi-kit",
+  "version": "0.1.0",
+  "description": "Artefactory default setup for pi: shared extensions, skills, prompts, themes and base settings.",
+  "private": true,
+  "type": "module",
+  "keywords": ["pi-package"],
+  "pi": {
+    "extensions": ["./extensions/*.ts"],
+    "skills": ["./skills"],
+    "prompts": ["./prompts/*.md"],
+    "themes": ["./themes/*.json"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  }
+}
