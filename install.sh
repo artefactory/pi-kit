@@ -7,7 +7,14 @@
 # 1. Installs pi if missing (npm global)
 # 2. Installs the pi packages listed in packages.txt + this kit itself
 # 3. Merges defaults.json into ~/.pi/agent/settings.json (existing keys win)
+#
+# Under `curl | sh` the script itself is sh's stdin: any child that reads stdin would
+# swallow the unread rest of the script and sh would exit 0 having done nothing.
+# Hence everything lives in main() (parsed in full before anything runs) and every
+# child gets </dev/null or `ssh -n`.
 set -eu
+
+main() {
 
 KIT_REPO="artefactory/pi-kit"
 KIT_SOURCE="git:git@github.com:${KIT_REPO}"
@@ -20,7 +27,7 @@ dry_run=false
 [ "${1:-}" = "--dry-run" ] && dry_run=true
 
 log() { printf '\033[1;34m[pi-kit]\033[0m %s\n' "$*" >&2; }
-run() { if [ "$dry_run" = true ]; then log "(dry-run) $*"; else "$@"; fi; }
+run() { if [ "$dry_run" = true ]; then log "(dry-run) $*"; else "$@" </dev/null; fi; }
 need() { command -v "$1" >/dev/null 2>&1 || { log "missing required tool: $1"; exit 1; }; }
 
 # Resolve kit files: local checkout if run from the repo, else fetch from GitHub.
@@ -39,7 +46,7 @@ need git
 need jq
 
 # SSH access to GitHub is required for private packages.
-if ! ssh -T -o BatchMode=yes -o StrictHostKeyChecking=accept-new git@github.com 2>&1 | grep -q "successfully authenticated"; then
+if ! ssh -n -T -o BatchMode=yes -o StrictHostKeyChecking=accept-new git@github.com 2>&1 | grep -q "successfully authenticated"; then
   log "GitHub SSH access is not configured (ssh -T git@github.com failed)."
   log "Private packages need it: https://docs.github.com/en/authentication/connecting-to-github-with-ssh"
   exit 1
@@ -47,7 +54,7 @@ fi
 
 # 1. pi
 if command -v pi >/dev/null 2>&1; then
-  log "pi already installed ($(pi --version))"
+  log "pi already installed ($(pi --version </dev/null))"
 else
   need npm
   log "installing pi"
@@ -84,3 +91,6 @@ else
 fi
 
 log "done. Run \`pi\` to start, \`pi update --extensions\` to update packages."
+}
+
+main "$@"
